@@ -21,9 +21,7 @@ app.MapPost("/upload", async (HttpContext context) =>
     if (string.IsNullOrEmpty(title) || file == null || 
         !(file.ContentType == "image/jpeg" || file.ContentType == "image/png" || file.ContentType == "image/gif"))
     {
-        context.Response.StatusCode = 400;
-        await context.Response.WriteAsync("Invalid input.");
-        return;
+        return Results.BadRequest("Invalid input.");
     }
 
     var id = Guid.NewGuid().ToString();
@@ -39,7 +37,7 @@ app.MapPost("/upload", async (HttpContext context) =>
     var json = JsonSerializer.Serialize(imageInfo);
     await File.WriteAllTextAsync(Path.Combine("wwwroot", "uploads", $"{id}.json"), json);
 
-    context.Response.Redirect($"/picture/{id}");
+    return Results.Redirect($"/picture/{id}");
 });
 
 app.MapGet("/picture/{id}", async (HttpContext context) =>
@@ -49,9 +47,7 @@ app.MapGet("/picture/{id}", async (HttpContext context) =>
 
     if (!File.Exists(jsonFilePath))
     {
-        context.Response.StatusCode = 404;
-        await context.Response.WriteAsync("Image not found.");
-        return;
+        return Results.NotFound("Image not found.");
     }
 
     var json = await File.ReadAllTextAsync(jsonFilePath);
@@ -97,9 +93,7 @@ app.MapGet("/picture/{id}", async (HttpContext context) =>
         </body>
         </html>";
 
-    context.Response.ContentType = "text/html";
-    await context.Response.WriteAsync(html);
-});
-
+    return Results.Content(html, "text/html");
+     });
 
 app.Run();
